@@ -1,0 +1,38 @@
+name: PR Workflow
+
+on:
+  pull_request:
+    branches:
+      - master       # Replace with the branch you want to monitor
+      - develop    # Add more branches as needed
+    types:
+      - opened
+      - reopened
+      - closed
+
+jobs:
+  pr-workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Conditional step based on pull request action
+      - name: Handle Pull Request Actions
+        run: |
+          if [[ "${{ github.event.action }}" == "opened" ]]; then
+            echo "Pull request opened on branch ${{ github.ref_name }}."
+            # Add commands to handle 'opened' event
+          elif [[ "${{ github.event.action }}" == "reopened" ]]; then
+            echo "Pull request reopened on branch ${{ github.ref_name }}."
+            # Add commands to handle 'reopened' event
+          elif [[ "${{ github.event.action }}" == "closed" ]]; then
+            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+              echo "Pull request merged into branch ${{ github.base_ref }}."
+              # Add commands to handle merged PR
+            else
+              echo "Pull request closed without merging."
+              # Add commands to handle PR closed without merging
+            fi
+          fi
