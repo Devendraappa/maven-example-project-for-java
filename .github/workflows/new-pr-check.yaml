@@ -1,0 +1,63 @@
+name: pr-checking
+
+on:
+  pull_request:
+    branches:
+      - master  # Trigger on PR events targeting the master branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Run the job on the latest Ubuntu environment
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Handle different pull request actions (opened, reopened, closed)
+      - name: Handle Pull Request Actions
+        run: |
+          # Check if the PR is opened
+          if [[ "${{ github.event.action }}" == "opened" ]]; then
+            echo "Pull request opened on branch ${{ github.ref_name }}."
+            # Commands to handle the 'opened' event can be added here
+
+          # Check if the PR is reopened
+          elif [[ "${{ github.event.action }}" == "reopened" ]]; then
+            echo "Pull request reopened on branch ${{ github.ref_name }}."
+            # Commands to handle the 'reopened' event can be added here
+
+          # Check if the PR is closed
+          elif [[ "${{ github.event.action }}" == "closed" ]]; then
+            if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+              echo "Pull request merged into branch ${{ github.base_ref }}."
+              # Commands to handle merged PR can be added here
+            else
+              echo "Pull request closed without merging."
+              # Commands to handle PR closed without merging can be added here
+            fi
+          fi
+
+      # Step 3: Set up JDK (Java Development Kit) for Maven build
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin  # Use Adoptium's Temurin JDK distribution
+
+      # Step 4: Cache Maven dependencies to speed up subsequent runs
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}  # Cache key based on `pom.xml`
+          restore-keys: |
+            ${{ runner.os }}-maven-  # Restore key if exact match is not found
+
+      # Step 5: Build the project with Maven
+      - name: Build with Maven
+        run: mvn clean install  # Clean and install dependencies
+
+      # Step 6: Run tests using Maven
+      - name: Run Tests
+        run: mvn test  # Execute the tests using Maven
