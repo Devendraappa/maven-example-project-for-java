@@ -3,7 +3,12 @@ name: pr-checking
 on:
   pull_request:
     branches:
-      - master  # Trigger on PR events targeting the master branch
+      - master       # Replace with the branch you want to monitor
+      - develop    # Add more branches as needed
+    types:
+      - opened
+      - reopened
+      - closed
 
 jobs:
   build:
